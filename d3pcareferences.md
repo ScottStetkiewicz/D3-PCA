@@ -1,0 +1,1 @@
+#### **Stetkiewicz, S.** 2016. Iron Age Iron Production in Britain and the Near Continent, in Miller, P., Erskine, G., Jacobbson, P., and Stetkiewicz, S. (eds.) *Proceedings of the 17th Annual Iron Age Research Student Symposium, Edinburgh, 29 May-1 June 2014*. Oxford: Archaeopress.
