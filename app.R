@@ -2,6 +2,7 @@ library(shinydashboard)
 library(scatterD3)
 library(FactoMineR)
 library(RColorBrewer)
+library(colorspace)
 
 ui <- tagList(
   dashboardPage(
@@ -27,19 +28,21 @@ ui <- tagList(
   dashboardBody(
     tabItems(
       tabItem(tabName = "intro",
-              fluidRow(
-                box(title=strong("D3 PCA"), status = "success", solidHeader = TRUE,
-                  includeMarkdown("d3pcaintro.md")
-                  ),
-                 box(title="Hovering", status = "warning", solidHeader = TRUE,
-                    h4("Once the plot is generated, you can hover over points to reveal more information about them.  This can also be done with the items listed in the legend; hover over one of the variables used to define the colors, for instance, to see that group highlighted within the plot.  The vector loadings are a separate legend layer (always colored black), and are present at the top of any color legend."
-                  )),
-                box(title="Lasso", status = "warning", solidHeader = TRUE,
-                    h4("If you want to select a series of points, hold down the shift key and define the area on the plot.  Any points within this area will have their label names displayed on the right of the plot."
-                )),
-                box(title="Zoom", status = "warning", solidHeader = TRUE,
-                    h4("To control the zoom, scroll the mouse wheel forwards and backwards."
-                ))
+              fluidRow(column(width=6,
+                              box(title=strong("D3 PCA"), width=NULL, status = "success", solidHeader = TRUE,
+                                  includeMarkdown("d3pcaintro.md")
+                              )),
+                       column(width=6,
+                              box(title="Hovering", width=NULL, status = "warning", solidHeader = TRUE,
+                                  h4("Once the plot is generated, you can hover over points to reveal more information about them.  This can also be done with the items listed in the legend."
+                                  )),
+                              box(title="Lasso", width=NULL, status = "warning", solidHeader = TRUE,
+                                  h4("If you want to select a series of points, hold down the shift key and define the area on the plot.  Any points within this area will have their label names displayed on the right of the plot. Hold Shift and click again to release the lasso."
+                                  )),
+                              box(title="Zoom", width=NULL, status = "warning", solidHeader = TRUE,
+                                  h4("To control the zoom, scroll the mouse wheel forwards and backwards."
+                                  ))
+                              )
               )
       ),
       tabItem(tabName = "analysis",
@@ -49,8 +52,7 @@ ui <- tagList(
             tabPanel(strong("Step 1"),
                      box(title=strong("Step 1: Upload your .CSV file using the Browse button to the right"), 
                          status = "success", solidHeader = TRUE,
-                         h4(p("You can convert your Excel file into .CSV format by using the 'Save As' function in Excel and selecting .CSV from the available options in the format drop-down menu.")),
-                            h4(p("Depending on how your file has been saved, you can choose the appropriate separator and quotation import settings to the right.  If you are unsure of the correct settings, leave the defaults as they are."))
+                         h4(p("You can convert your Excel file into .CSV format by using the 'Save As' function in Excel and selecting .CSV from the available options in the format drop-down menu."))
                      ),
                      box(title="Choose CSV File", status = "warning", solidHeader = TRUE,
                        column(
@@ -122,20 +124,12 @@ ui <- tagList(
                   includeMarkdown("d3pcaabout.md")
               ),
               box(title=strong("References"), status = "success", solidHeader = TRUE,
-                  # "Stetkiewic, Scott 2016. Iron Age Iron Production in Britain and the Near Continent, in Miller, P., Erskine, G., Jacobbson, P., and Stetkiewicz, S. (eds.) *Proceedings of the 17th Annual Iron Age Research Student Symposium, Edinburgh, 29 May-1 June 2014*. Oxford: Archaeopress."
                   includeMarkdown("d3pcareferences.md")
               )
       )
     )
   )
 )
-# tags$footer(a(href="https://www.google.com"), align = "center", style = "
-#               bottom:0;
-#               width:100%;
-#               height:25px;
-#               background-color:grey;
-#               opacity:0;
-#               z-index: 1000;")
 )
 
 server <- function(input, output, session) {
@@ -177,17 +171,14 @@ server <- function(input, output, session) {
   
   labNames <- reactive({
     if (input$labNames=="None") {rep(NA,nrow(inFile()))} else {inFile()[,input$labNames]}
-    # inFile()[,input$labNames]
   })
   
   colVar <- reactive({
     if (input$colVar=="None") {rep(NA,nrow(inFile()))} else {inFile()[,input$colVar]}
-    # inFile()[,input$colVar]
   })
   
   shapeVar <- reactive({
     if (input$shapeVar=="None") {rep(NA,nrow(inFile()))} else {inFile()[,input$shapeVar]}
-    # inFile()[,input$shapeVar]
   })
 
   selectedData <- reactive({
@@ -247,7 +238,7 @@ server <- function(input, output, session) {
   output$points_selected <- renderText(if (input$reset_input==TRUE) {NULL} else {input$selected_point})
 
   output$scatterPlot <- renderScatterD3({
-    getPalette <- colorRampPalette(brewer.pal(9, "Paired"))
+    getPalette <- colorRampPalette(brewer.pal(12, "Paired"))
     df <- svd_comp()
     dfarrow <- vector_arrows()
     if(input$do) {df$cluster <- as.factor(clusters()$cluster)}
@@ -295,7 +286,9 @@ scatterD3(data= dfarrow, x = x, y = y,
           hover_opacity = 1,
           col_var = color,
           col_lab = input$colVar,
-          colors = c(getPalette(length(unique(colVar()))),"#000000"),
+          colors = if (length(unique(colVar())) <= 8) {c(rainbow_hcl(length(unique(colVar()))),"#000000")} 
+                    else 
+                      {c(getPalette(length(unique(colVar()))),"#000000")},
           symbol_var = symbol,
           symbol_lab = input$shapeVar,
           lasso_callback = "function(sel) {

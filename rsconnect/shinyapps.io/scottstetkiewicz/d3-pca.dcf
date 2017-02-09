@@ -3,6 +3,8 @@ title:
 account: scottstetkiewicz
 server: shinyapps.io
 appId: 154819
-bundleId: 700017
+bundleId: 706500
 url: https://scottstetkiewicz.shinyapps.io/d3-pca/
-when: 1486147333.686
+when: 1486677529.93845
+asMultiple: FALSE
+asStatic: FALSE
