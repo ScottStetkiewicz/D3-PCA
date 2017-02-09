@@ -49,10 +49,10 @@ ui <- tagList(
         fluidRow(
           tabBox(
             id = "tabset1", width=12, height=800,
-            tabPanel(strong("Step 1"),
+            tabPanel(strong(h3("Step 1")),
                      box(title=strong("Step 1: Upload your .CSV file using the Browse button to the right"), 
                          status = "success", solidHeader = TRUE,
-                         h4(p("You can convert your Excel file into .CSV format by using the 'Save As' function in Excel and selecting .CSV from the available options in the format drop-down menu."))
+                         includeMarkdown("d3pcaupload.md")
                      ),
                      box(title="Choose CSV File", status = "warning", solidHeader = TRUE,
                        column(
@@ -75,7 +75,7 @@ ui <- tagList(
                          DT::dataTableOutput("contents")         
                      )
                      ),
-            tabPanel(strong("Step 2"),
+            tabPanel(strong(h3("Step 2")),
                      box(title=strong("Step 2: Create a new table of ONLY numeric data"), 
                          status = "success", solidHeader = TRUE,
                          h4("Principal Component Analysis can only be performed on quantitative data.  All string vectors (e.g. sample names, sites, etc.) must be removed prior to analysis.")
@@ -84,31 +84,35 @@ ui <- tagList(
                          selectizeInput(
                            "variables", 
                            NULL,
-                           "", multiple=TRUE)
+                           "",
+                           multiple=TRUE)
                      ),
                      box(title="Original Data", solidHeader = TRUE, status = "primary", width=12,
                          DT::dataTableOutput("contents2")         
                      )
             ),
-            tabPanel(strong("Step 3"),
-                     box(title=strong("Step 3: Select Input Variables"), 
-                         status = "success", solidHeader = TRUE,
-                         h4(p("Using the three 'Select:...' options on the left-hand panel, choose which variables to use for the plot aesthetics."),
-                         p("While these would traditionally be qualitative variables, it is also possible to select quantitative data.  If this option is chosen, the resulting plot will have a continuous scale for the selected factor.  This can be useful if you are exploring variation for a specific variable across the entire dataset."),
-                         p("If you do not want to specifically define any of these inputs, select 'None'."),
-                         p("Examples are provided to the right."))
-                     ),
-                     box(title="Select Label Names:", status = "warning", solidHeader = TRUE,
-                         h4("If your data is comprised of individual samples which are represented in a column of sample names, select this column.")
-                     ),
-                     box(title="Select Color Variable:", status = "warning", solidHeader = TRUE,
-                         h4("If your data is organized by discrete sites, select the column which is used to identify these sites.")
-                     ),
-                     box(title="Select Shape Variable:", status = "warning", solidHeader = TRUE,
-                         h4("If your data comes from different regions or countries, select the column which is used to identify these regions or countries.")
-                     )
+            tabPanel(strong(h3("Step 3")),
+                       column(width=6,
+                         box(title=strong("Step 3: Select Input Variables"), width=NULL, 
+                             status = "success", solidHeader = TRUE,
+                             h4(p("Using the three 'Select:...' options on the left-hand panel, choose which variables to use for the plot aesthetics."),
+                                p("If you do not want to specifically define any of these inputs, select 'None'."),
+                                p("Examples are provided to the right."))
+                         )
+                       ),
+                       column(width=6,
+                         box(title="Select Label Names:", width=NULL, status = "warning", solidHeader = TRUE,
+                             h4("If your data is comprised of individual samples which are represented in a column of sample names, select this column.")
+                         ),
+                         box(title="Select Color Variable:", width=NULL, status = "warning", solidHeader = TRUE,
+                             h4("If your data is organized by discrete sites, select the column which is used to identify these sites.")
+                         ),
+                         box(title="Select Shape Variable:", width=NULL, status = "warning", solidHeader = TRUE,
+                             h4("If your data comes from different regions or countries, select the column which is used to identify these regions or countries.")
+                         )
+                       )
             ),
-            tabPanel(strong("Plot Output"),
+            tabPanel(strong(h3("Plot Output")),
                      box(width=10,
                          scatterD3Output("scatterPlot", height=700)
                      ),
@@ -137,7 +141,7 @@ server <- function(input, output, session) {
   inFile <- reactive({
     inFile <- input$file1
     if (is.null(inFile))
-      return(NULL)
+      return(iris)
     read.csv(inFile$datapath, header=input$header, sep=input$sep, quote=input$quote)
   })
   
@@ -145,7 +149,9 @@ server <- function(input, output, session) {
     updateSelectizeInput(
       session,
       "variables",
-      choices=names(inFile()))
+      choices=names(inFile()),
+      selected=c("Sepal.Length","Sepal.Width","Petal.Length","Petal.Width")
+      )
   })
   
   observe({
@@ -159,7 +165,9 @@ server <- function(input, output, session) {
     updateSelectInput(
       session,
       "colVar",
-      choices=c("None", names(inFile())))
+      choices=c("None", names(inFile())),
+      selected = "Species"
+      )
   })
 
   observe({
